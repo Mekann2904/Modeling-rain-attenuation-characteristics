@@ -1,5 +1,6 @@
-# venv
-/Users/mekann/github/tino4/Modeling-rain-attenuation-characteristics/.venv
+# MacOS のシステムファイルを無視
+.DS_Store
 
-# DS_Store
-/Users/mekann/github/tino4/Modeling-rain-attenuation-characteristics/.DS_Store
+# 仮想環境を無視
+.venv/
+
