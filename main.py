@@ -1,7 +1,9 @@
 import os
 import pandas as pd
+import numpy as np
 from datetime import datetime, time
 from concurrent.futures import ProcessPoolExecutor
+from numba import njit
 
 # Pandasの出力設定を変更（省略せず全て表示）
 pd.set_option('display.max_rows', None)
@@ -12,15 +14,38 @@ pd.set_option('display.expand_frame_repr', False)
 with open("path.txt", 'r') as file:
     file_paths = [line.strip() for line in file.readlines()]
 
-# 時間範囲を生成
-def generate_time_ranges(start, end, interval_seconds=10):
-    times = pd.date_range(start=start, end=end, freq=f'{interval_seconds}s').time
-    return list(times)
+# 時間を秒に変換（Numba対応）
+@njit
+def time_to_seconds_numba(h, m, s):
+    return h * 3600 + m * 60 + s
 
-# 時間範囲でデータをフィルタリングする関数
-def filter_by_time_range(df, start_time):
-    end_time = (datetime.combine(datetime.today(), start_time) + pd.Timedelta(seconds=10)).time()
-    return df[(df['time'] >= start_time) & (df['time'] < end_time)]
+# 秒を時間に変換（Numba対応）
+@njit
+def seconds_to_time_numba(seconds):
+    h = seconds // 3600
+    m = (seconds % 3600) // 60
+    s = seconds % 60
+    return h, m, s
+
+# 時間範囲を生成
+@njit
+def generate_time_ranges_seconds(start_sec, end_sec, interval_seconds=10):
+    return np.arange(start_sec, end_sec + 1, interval_seconds)
+
+# 時間範囲でデータをフィルタリングし平均値を計算（Numba最適化）
+@njit
+def calculate_means(times, values, time_ranges):
+    results = np.zeros(len(time_ranges) - 1, dtype=np.float64)
+    for i in range(len(time_ranges) - 1):
+        start = time_ranges[i]
+        end = time_ranges[i + 1]
+        mask = (times >= start) & (times < end)
+        filtered_values = values[mask]
+        if len(filtered_values) > 0:
+            results[i] = filtered_values.mean()
+        else:
+            results[i] = 0.0  # データが存在しない場合は0
+    return results
 
 # ファイルを処理するメイン関数
 def process_file(file_path):
@@ -55,26 +80,26 @@ def process_file(file_path):
         df['time'] = pd.to_datetime(df['time'], format='%H:%M:%S').dt.time
         df['MX_RX_LEVEL'] = pd.to_numeric(df['MX_RX_LEVEL'], errors='coerce')
 
-        # 10秒ごとの時間範囲を生成
-        time_ranges = generate_time_ranges("00:00:00", "23:59:59")
+        # NumPy配列に変換
+        times = np.array([time_to_seconds_numba(t.hour, t.minute, t.second) for t in df['time']])
+        values = df['MX_RX_LEVEL'].to_numpy()
 
-        # 各範囲でデータを取得し、計算
-        results = []
-        for start in time_ranges:
-            range_data = filter_by_time_range(df, start)
-            if not range_data.empty:
-                count = range_data['MX_RX_LEVEL'].count()
-                if count == 5:
-                    out_value = range_data['MX_RX_LEVEL'].sum()
-                else:
-                    out_value = range_data['MX_RX_LEVEL'].mean() * 5
-                results.append({
-                    "time": start.strftime('%H:%M:%S'),  # 時間を文字列に変換
-                    "MX_RX_LEVEL": out_value
-                })
+        # 時間範囲を秒単位で生成
+        start_sec = time_to_seconds_numba(0, 0, 0)
+        end_sec = time_to_seconds_numba(23, 59, 59)
+        time_ranges = generate_time_ranges_seconds(start_sec, end_sec)
 
-        # DataFrameに変換して保存
-        result_df = pd.DataFrame(results)
+        # 平均値を計算
+        results = calculate_means(times, values, time_ranges)
+
+        # 結果をDataFrameに変換
+        result_times = [seconds_to_time_numba(s) for s in time_ranges[:-1]]
+        result_df = pd.DataFrame({
+            "time": [f"{h:02}:{m:02}:{s:02}" for h, m, s in result_times],
+            "MX_RX_LEVEL": results
+        })
+
+        # 結果を保存
         output_file_name = os.path.splitext(os.path.basename(file_path))[0] + "_output.txt"
         output_file_path = os.path.join(os.path.dirname(file_path), output_file_name)
         result_df.to_csv(output_file_path, index=False, header=True)
