@@ -24,6 +24,7 @@ output_file_path = os.path.join(os.path.dirname(file_path), output_file_name)
 
 
 # 備考
-自分の環境では全て変換するのに17分かかった。
+~~自分の環境では全て変換するのに17分かかった。~~
+コードの見直しによりすべて変換するのに1分程度に短縮できました。
 
 
