@@ -19,6 +19,6 @@ def save_log_file_paths(directory, output_file):
 
 # 実行
 if __name__ == "__main__":
-    directory_path = "/Users/mekann/tino/降雨減衰特性のモデリング/RxData"  # 対象のディレクトリ
+    directory_path = "/Users/mekann/github/tino4/Modeling-rain-attenuation-characteristics/RxData"  # 対象のディレクトリ
     output_file = "path.txt"  # 保存先のファイル
     save_log_file_paths(directory_path, output_file)
