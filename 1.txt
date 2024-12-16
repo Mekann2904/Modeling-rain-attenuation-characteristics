@@ -1,0 +1,11 @@
+
+| ファイルパス                                        | 問題内容                                                                                                                    | エラー発生箇所 |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------- |
+| RxData/200912/20091223/192.168.100.11_csv.log | time data "HOST NAME : Undefined Host  IP ADDRESS : 192.168.100.11" doesn't match format "%H:%M:%S", at position 16275. | 16275   |
+| RxData/200912/20091223/192.168.100.9_csv.log  | time data "HOST NAME : Undefined Host  IP ADDRESS : 192.168.100.9" doesn't match format "%H:%M:%S", at position 16272.  | 16272   |
+| RxData/200910/20091012/192.168.100.9_csv.log  | Error tokenizing data. C error: Expected 4 fields in line 23731, saw 5                                                  | 23731   |
+| RxData/200910/20091012/192.168.100.9_csv.log  | time data "HOST NAME : Undefined Host  IP ADDRESS : 192.168.100.9" doesn't match format "%H:%M:%S", at position 23630.  | 23630   |
+| RxData/200910/20091012/192.168.100.11_csv.log | 'utf-8' codec can't decode byte 0xfc in position 213017: invalid start byte                                             | 213017  |
+| RxData/200910/20091012/192.168.100.11_csv.log | time data "HOST NAME : Undefined Host  IP ADDRESS : 192.168.100.11" doesn't match format "%H:%M:%S", at position 23630. | 23630   |
+| RxData/200910/20091012/192.168.100.11_csv.log | time data "16     =\"Remoteaktivierung ber NBT-Abfrage\"" doesn't match format "%H:%M:%S", at position 23746.           | 23746   |
+
